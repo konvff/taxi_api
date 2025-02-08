@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Booking;
+use Illuminate\Http\Request;
 
 class ApiBookingController extends Controller
 {
@@ -12,7 +12,8 @@ class ApiBookingController extends Controller
      */
     public function index()
     {
-        return response()->json(Booking::withTrashed()->get(), 200);
+        return response()->json(Booking::whereNull('deleted_at')->get(), 200);
+
     }
 
     /**
@@ -22,10 +23,11 @@ class ApiBookingController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email',
             'category' => 'required',
             'pickuplocation' => 'required',
             'destination' => 'required',
+            'amount' => 'required',
         ]);
 
         $booking = Booking::create($request->all());
@@ -40,7 +42,7 @@ class ApiBookingController extends Controller
     {
         $booking = Booking::withTrashed()->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
@@ -54,22 +56,24 @@ class ApiBookingController extends Controller
     {
         $booking = Booking::find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email',
             'category' => 'required',
             'pickuplocation' => 'required',
             'destination' => 'required',
+            'amount' => 'required',
         ]);
 
         $booking->update($request->all());
 
         return response()->json($booking, 200);
     }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -77,11 +81,12 @@ class ApiBookingController extends Controller
     {
         $booking = Booking::find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
         $booking->delete();
+
         return response()->json(['message' => 'Booking soft deleted'], 200);
     }
 
@@ -89,11 +94,12 @@ class ApiBookingController extends Controller
     {
         $booking = Booking::onlyTrashed()->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
         $booking->restore();
+
         return response()->json(['message' => 'Booking restored'], 200);
     }
 
@@ -102,11 +108,12 @@ class ApiBookingController extends Controller
     {
         $booking = Booking::withTrashed()->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
         $booking->forceDelete();
+
         return response()->json(['message' => 'Booking permanently deleted'], 200);
     }
 
@@ -129,10 +136,31 @@ class ApiBookingController extends Controller
         return response()->json([
             'message' => $previousDriverId
                 ? "Driver reassigned successfully from Driver ID: $previousDriverId to Driver ID: {$request->user_id}"
-                : "Driver assigned successfully",
-            'booking' => $booking->load('user') // Load user details if relationship exists
+                : 'Driver assigned successfully',
+            'booking' => $booking->load('user'), // Load user details if relationship exists
         ]);
     }
 
+    public function updateStatus(Request $request, $id)
+    {
+        // Validate the request
+        $request->validate([
+            'status' => 'required|integer',
+        ]);
 
+        // Find the booking
+        $booking = Booking::find($id);
+        if (! $booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
+
+        // Update the status
+        $booking->status = $request->status;
+        $booking->save();
+
+        return response()->json([
+            'message' => 'Booking status updated successfully',
+            'booking' => $booking,
+        ], 200);
+    }
 }

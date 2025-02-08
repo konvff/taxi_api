@@ -26,7 +26,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/users/{id}', [DriverController::class, 'destroy']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/driver/data', [DriverController::class, 'userBookings']);
-
+    Route::post('/bookings/{id}/status', [ApiBookingController::class, 'updateStatus']);
     Route::apiResource('bookings', ApiBookingController::class);
     Route::put('bookings/restore/{id}', [ApiBookingController::class, 'restore']);
     Route::delete('bookings/permanent/{id}', [ApiBookingController::class, 'forceDelete']);
