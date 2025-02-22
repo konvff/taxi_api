@@ -21,10 +21,12 @@ class AuthController extends Controller
             'car_name' => 'nullable|string|max:255',
             'car_model' => 'nullable|string|max:255',
             'car_color' => 'nullable|string|max:255',
+            'photo_url' => 'nullable|string|max:255',
         ]);
 
         $user = User::create([
             'name' => $validatedData['name'],
+            'photo_url' => $validatedData['photo_url'] ?? null,
             'email' => $validatedData['email'],
             'phone' => $validatedData['phone'],
             'location' => $validatedData['location'],
@@ -71,6 +73,4 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logged out successfully']);
     }
-
-
 }

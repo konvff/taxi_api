@@ -88,4 +88,50 @@ class DriverController extends Controller
             'bookings' => $bookings,
         ]);
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        // Validate the request
+        $request->validate([
+            'status' => 'required|integer',
+        ]);
+
+        // Find the booking
+        $user = User::find($id);
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Update the status
+        $user->status = $request->status;
+        $user->save();
+
+        return response()->json([
+            'message' => 'User status updated successfully',
+            'user' => $user,
+        ], 200);
+    }
+
+    public function isActive(Request $request, $id)
+    {
+        // Validate the request
+        $request->validate([
+            'is_active' => 'required|integer',
+        ]);
+
+        // Find the booking
+        $user = User::find($id);
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Update the status
+        $user->is_active = $request->is_active;
+        $user->save();
+
+        return response()->json([
+            'message' => 'User status active updated successfully',
+            'booking' => $user,
+        ], 200);
+    }
 }

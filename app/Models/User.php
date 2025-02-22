@@ -22,10 +22,13 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'status',
+        'is_active',
         'location',
         'car_name',
         'car_model',
-        'car_color'
+        'car_color',
+        'photo_url',
     ];
 
     /**
@@ -49,8 +52,7 @@ class User extends Authenticatable
     ];
 
     public function bookings()
-{
-    return $this->hasMany(Booking::class);
-}
-
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

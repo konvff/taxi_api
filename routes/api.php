@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApiBookingController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\ImageUploadController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/driver/create', [AuthController::class, 'register']);
 Route::post('/login/users', [AuthController::class, 'auth'])->withoutMiddleware('auth:sanctum');
-
+Route::post('/upload-image', [ImageUploadController::class, 'upload']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users', [DriverController::class, 'index']);
     Route::get('/users/{id}', [DriverController::class, 'show']);
@@ -27,6 +28,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/driver/data', [DriverController::class, 'userBookings']);
     Route::post('/bookings/{id}/status', [ApiBookingController::class, 'updateStatus']);
+    Route::post('/user/{id}/status', [DriverController::class, 'updateStatus']);
+    Route::post('/active/{id}/status', [DriverController::class, 'isActive']);
     Route::apiResource('bookings', ApiBookingController::class);
     Route::put('bookings/restore/{id}', [ApiBookingController::class, 'restore']);
     Route::delete('bookings/permanent/{id}', [ApiBookingController::class, 'forceDelete']);
