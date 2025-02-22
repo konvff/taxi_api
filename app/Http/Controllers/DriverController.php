@@ -38,14 +38,25 @@ class DriverController extends Controller
         $validatedData = $request->validate([
             'name' => 'string|max:255',
             'email' => 'string|email|unique:users,email,'.$id,
+            'phone' => 'string|max:255',
+            'location' => 'string|max:255',
+            'car_name' => 'nullable|string|max:255',
+            'car_model' => 'nullable|string|max:255',
+            'car_color' => 'nullable|string|max:255',
+
         ]);
 
+        // Updating only if provided, otherwise keeping existing values
         $user->name = $validatedData['name'] ?? $user->name;
         $user->email = $validatedData['email'] ?? $user->email;
         $user->location = $validatedData['location'] ?? $user->location;
+        $user->phone = $validatedData['phone'] ?? $user->phone;
+        $user->car_name = $validatedData['car_name'] ?? $user->car_name;
+        $user->car_model = $validatedData['car_model'] ?? $user->car_model;
+        $user->car_color = $validatedData['car_color'] ?? $user->car_color;
 
-        if (isset($request['password'])) {
-            $user->password = Hash::make($request['password']);
+        if (! empty($validatedData['password'])) {
+            $user->password = Hash::make($validatedData['password']);
         }
 
         $user->save();
