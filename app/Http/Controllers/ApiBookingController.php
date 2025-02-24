@@ -28,6 +28,7 @@ class ApiBookingController extends Controller
             'pickuplocation' => 'required',
             'destination' => 'required',
             'amount' => 'required',
+            'notes' => 'required',
         ]);
 
         $booking = Booking::create($request->all());
@@ -67,6 +68,7 @@ class ApiBookingController extends Controller
             'pickuplocation' => 'required',
             'destination' => 'required',
             'amount' => 'required',
+            'notes' => 'required',
         ]);
 
         $booking->update($request->all());

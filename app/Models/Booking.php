@@ -11,13 +11,13 @@ class Booking extends Model
     use HasFactory,SoftDeletes;
 
     protected $table = 'bookings';
+
     protected $fillable = [
-        'name', 'email', 'category', 'pickuplocation', 'destination','user_id','amount','status'
+        'name', 'email', 'category', 'pickuplocation', 'destination', 'user_id', 'amount', 'status', 'notes',
     ];
 
     public function user()
-{
-    return $this->belongsTo(User::class);
-}
-
+    {
+        return $this->belongsTo(User::class);
+    }
 }
