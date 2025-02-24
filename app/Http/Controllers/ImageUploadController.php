@@ -17,12 +17,14 @@ class ImageUploadController extends Controller
         // Store the image in the 'public' disk and get the file path
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imagePath = $image->store('images', 'public'); // Store in the 'storage/app/public/images' directory
+            $filename = time().'.'.$image->getClientOriginalExtension();
 
-            // Return a response with the image path
+            // Move the file to public/images/ instead of storage/app/public
+            $image->move(public_path('images'), $filename);
+
             return response()->json([
                 'message' => 'Image uploaded successfully!',
-                'image_path' => Storage::url($imagePath),  // Returns the public URL of the uploaded image
+                'image_path' => '/images/'.$filename,
             ], 200);
         }
 
