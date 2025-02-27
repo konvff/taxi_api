@@ -41,6 +41,7 @@ class DriverController extends Controller
             'phone' => 'string|max:255',
             'category' => 'string|max:255',
             'location' => 'string|max:255',
+            'role' => 'string|max:255',
             'car_name' => 'nullable|string|max:255',
             'car_model' => 'nullable|string|max:255',
             'car_color' => 'nullable|string|max:255',
@@ -51,6 +52,7 @@ class DriverController extends Controller
         $user->name = $validatedData['name'] ?? $user->name;
         $user->email = $validatedData['email'] ?? $user->email;
         $user->location = $validatedData['location'] ?? $user->location;
+        $user->role = $validatedData['role'] ?? $user->role;
         $user->phone = $validatedData['phone'] ?? $user->phone;
         $user->category = $validatedData['category'] ?? $user->category;
         $user->car_name = $validatedData['car_name'] ?? $user->car_name;
