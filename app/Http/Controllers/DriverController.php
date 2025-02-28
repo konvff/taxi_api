@@ -11,7 +11,7 @@ class DriverController extends Controller
 {
     public function index()
     {
-        $users = User::where('role', 'driver')->get();
+        $users = User::all();
 
         return response()->json(['users' => $users], 200);
     }
@@ -92,6 +92,16 @@ class DriverController extends Controller
             'bookings' => $bookings,
         ]);
     }
+
+    public function userBookSngle(Request $request, $user_id)
+{
+    $bookings = Booking::where('user_id', $user_id)->get(); // Get bookings for the given user ID
+
+    return response()->json([
+        'message' => 'User bookings retrieved successfully',
+        'bookings' => $bookings,
+    ]);
+}
 
     public function updateStatus(Request $request, $id)
     {

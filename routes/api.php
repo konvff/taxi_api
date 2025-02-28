@@ -35,5 +35,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('bookings/permanent/{id}', [ApiBookingController::class, 'forceDelete']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/bookings/{booking}/assign-driver', [ApiBookingController::class, 'assignDriver']);
+    Route::get('/user/bookings/{user_id}', [DriverController::class, 'userBookSngle']);
 
 });
