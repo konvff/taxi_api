@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/driver/data', [DriverController::class, 'userBookings']);
     Route::post('/bookings/{id}/status', [ApiBookingController::class, 'updateStatus']);
     Route::post('/user/{id}/status', [DriverController::class, 'updateStatus']);
+    Route::post('/user/{id}/rating', [DriverController::class, 'updateRating']);
     Route::post('/active/{id}/status', [DriverController::class, 'isActive']);
     Route::apiResource('bookings', ApiBookingController::class);
     Route::put('bookings/restore/{id}', [ApiBookingController::class, 'restore']);

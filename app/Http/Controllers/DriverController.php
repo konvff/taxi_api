@@ -94,14 +94,14 @@ class DriverController extends Controller
     }
 
     public function userBookSngle(Request $request, $user_id)
-{
-    $bookings = Booking::where('user_id', $user_id)->get(); // Get bookings for the given user ID
+    {
+        $bookings = Booking::where('user_id', $user_id)->get(); // Get bookings for the given user ID
 
-    return response()->json([
-        'message' => 'User bookings retrieved successfully',
-        'bookings' => $bookings,
-    ]);
-}
+        return response()->json([
+            'message' => 'User bookings retrieved successfully',
+            'bookings' => $bookings,
+        ]);
+    }
 
     public function updateStatus(Request $request, $id)
     {
@@ -122,6 +122,27 @@ class DriverController extends Controller
 
         return response()->json([
             'message' => 'User status updated successfully',
+            'user' => $user,
+        ], 200);
+    }
+
+    public function updateRating(Request $request, $id)
+    {
+
+        $request->validate([
+            'rating_count' => 'required|integer|min:0',
+            'rating' => ['required', 'numeric', 'between:0,5', 'regex:/^\d+(\.\d{1})?$/'],
+        ]);
+        $user = User::find($id);
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        $user->rating_count = $request->rating_count;
+        $user->rating = $request->rating;
+        $user->save();
+
+        return response()->json([
+            'message' => 'User rate updated successfully',
             'user' => $user,
         ], 200);
     }
