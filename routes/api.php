@@ -37,5 +37,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/bookings/{booking}/assign-driver', [ApiBookingController::class, 'assignDriver']);
     Route::get('/user/bookings/{user_id}', [DriverController::class, 'userBookSngle']);
+    Route::get('/dashboard/user', [ApiBookingController::class, 'getUserBookings']);
 
 });

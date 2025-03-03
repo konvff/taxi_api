@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ApiBookingController extends Controller
@@ -12,7 +13,11 @@ class ApiBookingController extends Controller
      */
     public function index()
     {
-        return response()->json(Booking::whereNull('deleted_at')->get(), 200);
+        $bookings = Booking::with('user')
+            ->whereNull('deleted_at')
+            ->get();
+
+        return response()->json($bookings, 200);
 
     }
 
@@ -28,7 +33,7 @@ class ApiBookingController extends Controller
             'pickuplocation' => 'required',
             'destination' => 'required',
             'amount' => 'required',
-            'notes' => 'required',
+            'notes' => 'nullable',
         ]);
 
         $booking = Booking::create($request->all());
@@ -68,7 +73,7 @@ class ApiBookingController extends Controller
             'pickuplocation' => 'required',
             'destination' => 'required',
             'amount' => 'required',
-            'notes' => 'required',
+            'notes' => 'nullable',
         ]);
 
         $booking->update($request->all());
@@ -141,6 +146,47 @@ class ApiBookingController extends Controller
                 : 'Driver assigned successfully',
             'booking' => $booking->load('user'), // Load user details if relationship exists
         ]);
+    }
+
+    public function getUserBookings(Request $request): JsonResponse
+    {
+        // Check if filters are provided
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        // Query Builder
+        $queryOngoing = Booking::with('user')->where('status', 2);
+        $queryCompleted = Booking::with('user')->where('status', 3);
+
+        // Apply date filter only if both start and end dates are provided
+        if ($startDate && $endDate) {
+            $queryOngoing->whereBetween('created_at', [$startDate, $endDate]);
+            $queryCompleted->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        // Fetch Data
+        $onGoingBookings = $queryOngoing->get();
+        $completedBookings = $queryCompleted->get();
+
+        // Calculate Revenue
+        $onGoingRevenue = $onGoingBookings->sum('amount');
+        $completedRevenue = $completedBookings->sum('amount');
+        $totalRevenue = $onGoingRevenue + $completedRevenue;
+
+        return response()->json([
+            'filter_applied' => $startDate && $endDate ? true : false,
+            'start_date' => $startDate ?? 'All Data',
+            'end_date' => $endDate ?? 'All Data',
+            'onGoing' => [
+                'bookings' => $onGoingBookings,
+                'revenue' => $onGoingRevenue,
+            ],
+            'completed' => [
+                'bookings' => $completedBookings,
+                'revenue' => $completedRevenue,
+            ],
+            'total_revenue' => $totalRevenue,
+        ], 200);
     }
 
     public function updateStatus(Request $request, $id)
