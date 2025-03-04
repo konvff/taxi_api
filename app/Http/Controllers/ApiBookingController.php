@@ -28,7 +28,7 @@ class ApiBookingController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'category' => 'required',
             'pickuplocation' => 'required',
             'destination' => 'required',
@@ -68,7 +68,7 @@ class ApiBookingController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'category' => 'required',
             'pickuplocation' => 'required',
             'destination' => 'required',
@@ -150,28 +150,39 @@ class ApiBookingController extends Controller
 
     public function getUserBookings(Request $request): JsonResponse
     {
-        // Check if filters are provided
+
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
-        // Query Builder
+        $currentMonthStart = now()->startOfMonth();
+        $currentMonthEnd = now()->endOfMonth();
+        $previousMonthStart = now()->subMonth()->startOfMonth();
+        $previousMonthEnd = now()->subMonth()->endOfMonth();
+
         $queryOngoing = Booking::with('user')->where('status', 2);
+        $queryUnassign = Booking::with('user')->where('status', 0);
         $queryCompleted = Booking::with('user')->where('status', 3);
 
-        // Apply date filter only if both start and end dates are provided
         if ($startDate && $endDate) {
             $queryOngoing->whereBetween('created_at', [$startDate, $endDate]);
             $queryCompleted->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        // Fetch Data
         $onGoingBookings = $queryOngoing->get();
+        $unassignBookings = $queryUnassign->get();
         $completedBookings = $queryCompleted->get();
 
-        // Calculate Revenue
         $onGoingRevenue = $onGoingBookings->sum('amount');
         $completedRevenue = $completedBookings->sum('amount');
         $totalRevenue = $onGoingRevenue + $completedRevenue;
+
+        $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+            ->where('status', 3)
+            ->sum('amount');
+
+        $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+            ->where('status', 3)
+            ->sum('amount');
 
         return response()->json([
             'filter_applied' => $startDate && $endDate ? true : false,
@@ -181,17 +192,22 @@ class ApiBookingController extends Controller
                 'bookings' => $onGoingBookings,
                 'revenue' => $onGoingRevenue,
             ],
+            'UnAssign' => [
+                'bookings' => $unassignBookings,
+            ],
             'completed' => [
                 'bookings' => $completedBookings,
                 'revenue' => $completedRevenue,
             ],
             'total_revenue' => $totalRevenue,
+            'previous_month_revenue' => $previousMonthRevenue,
+            'current_month_revenue' => $currentMonthRevenue,
         ], 200);
     }
 
     public function updateStatus(Request $request, $id)
     {
-        // Validate the request
+
         $request->validate([
             'status' => 'required|integer',
         ]);

@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiBookingController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\ImageUploadController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,5 +39,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/bookings/{booking}/assign-driver', [ApiBookingController::class, 'assignDriver']);
     Route::get('/user/bookings/{user_id}', [DriverController::class, 'userBookSngle']);
     Route::get('/dashboard/user', [ApiBookingController::class, 'getUserBookings']);
+    Route::post('/notifications', [NotificationController::class, 'createNotification']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markNotificationAsRead']);
+    Route::get('/notifications', [NotificationController::class, 'getNotifications']);
 
 });

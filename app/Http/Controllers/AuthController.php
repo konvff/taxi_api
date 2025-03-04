@@ -52,20 +52,26 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'fcm_token' => 'required',
         ]);
 
-        if (! Auth::attempt($credentials)) {
+        if (! Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         $user = $request->user();
         $token = $user->createToken('API Token')->plainTextToken;
 
+        if ($request->filled('fcm_token')) {
+            $user->update(['fcm_token' => $request->fcm_token]);
+        }
+
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
             'role' => $user->role,
             'category' => $user->category,
+            'fcm_token' => $user->fcm_token,
             'token' => $token,
         ]);
     }

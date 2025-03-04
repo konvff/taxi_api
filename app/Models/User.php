@@ -31,6 +31,7 @@ class User extends Authenticatable
         'car_model',
         'car_color',
         'photo_url',
+        'fcm_token',
     ];
 
     /**
