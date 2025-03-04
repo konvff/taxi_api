@@ -205,6 +205,67 @@ class ApiBookingController extends Controller
         ], 200);
     }
 
+    public function getDriverBookings(Request $request, $userId): JsonResponse
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $currentMonthStart = now()->startOfMonth();
+        $currentMonthEnd = now()->endOfMonth();
+        $previousMonthStart = now()->subMonth()->startOfMonth();
+        $previousMonthEnd = now()->subMonth()->endOfMonth();
+
+        // Apply user filter directly
+        $queryOngoing = Booking::with('user')->where('user_id', $userId)->where('status', 2);
+        $queryUnassign = Booking::with('user')->where('user_id', $userId)->where('status', 0);
+        $queryCompleted = Booking::with('user')->where('user_id', $userId)->where('status', 3);
+
+        // Apply date filter if provided
+        if ($startDate && $endDate) {
+            $queryOngoing->whereBetween('created_at', [$startDate, $endDate]);
+            $queryCompleted->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $onGoingBookings = $queryOngoing->get();
+        $unassignBookings = $queryUnassign->get();
+        $completedBookings = $queryCompleted->get();
+
+        $onGoingRevenue = $onGoingBookings->sum('amount');
+        $completedRevenue = $completedBookings->sum('amount');
+        $totalRevenue = $onGoingRevenue + $completedRevenue;
+
+        $previousMonthRevenue = Booking::where('user_id', $userId)
+            ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+            ->where('status', 3)
+            ->sum('amount');
+
+        $currentMonthRevenue = Booking::where('user_id', $userId)
+            ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+            ->where('status', 3)
+            ->sum('amount');
+
+        return response()->json([
+            'user_id' => $userId,
+            'filter_applied' => $startDate && $endDate ? true : false,
+            'start_date' => $startDate ?? 'All Data',
+            'end_date' => $endDate ?? 'All Data',
+            'onGoing' => [
+                'bookings' => $onGoingBookings,
+                'revenue' => $onGoingRevenue,
+            ],
+            'UnAssign' => [
+                'bookings' => $unassignBookings,
+            ],
+            'completed' => [
+                'bookings' => $completedBookings,
+                'revenue' => $completedRevenue,
+            ],
+            'total_revenue' => $totalRevenue,
+            'previous_month_revenue' => $previousMonthRevenue,
+            'current_month_revenue' => $currentMonthRevenue,
+        ], 200);
+    }
+
     public function updateStatus(Request $request, $id)
     {
 
