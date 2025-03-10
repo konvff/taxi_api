@@ -34,6 +34,7 @@ class ApiBookingController extends Controller
             'destination' => 'required',
             'amount' => 'required',
             'notes' => 'nullable',
+            'booking_date' => 'nullable|date',
         ]);
 
         $booking = Booking::create($request->all());
@@ -74,6 +75,7 @@ class ApiBookingController extends Controller
             'destination' => 'required',
             'amount' => 'required',
             'notes' => 'nullable',
+            'booking_date' => 'nullable|date',
         ]);
 
         $booking->update($request->all());
@@ -287,5 +289,27 @@ class ApiBookingController extends Controller
             'message' => 'Booking status updated successfully',
             'booking' => $booking,
         ], 200);
+    }
+
+    public function getBookingsByDate(Request $request)
+    {
+        $request->validate([
+            'booking_date' => 'required|date_format:Y-m-d',
+        ]);
+
+        $bookingDate = $request->query('booking_date');
+
+        // Debugging output
+        \Log::info("Fetching bookings for date: $bookingDate");
+
+        $bookings = Booking::whereDate('booking_date', $bookingDate)->get();
+
+        if ($bookings->isEmpty()) {
+            \Log::info("No bookings found for date: $bookingDate");
+
+            return response()->json(['message' => 'No bookings found for this date.'], 404);
+        }
+
+        return response()->json($bookings);
     }
 }

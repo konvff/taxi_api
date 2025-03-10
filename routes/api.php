@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/driver/create', [AuthController::class, 'register']);
 Route::post('/login/users', [AuthController::class, 'auth'])->withoutMiddleware('auth:sanctum');
 Route::post('/upload-image', [ImageUploadController::class, 'upload']);
+Route::get('/bookings/date', [ApiBookingController::class, 'getBookingsByDate']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users', [DriverController::class, 'index']);
     Route::get('/users/{id}', [DriverController::class, 'show']);
@@ -43,6 +45,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/notifications/{id}/read', [NotificationController::class, 'markNotificationAsRead']);
     Route::get('/notifications', [NotificationController::class, 'getNotifications']);
     Route::get('/details/{userId}/users', [ApiBookingController::class, 'getDriverBookings']);
-
 
 });
