@@ -130,6 +130,7 @@ class ApiBookingController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
+            'booking_date' => 'nullable|date_format:Y-m-d',
         ]);
 
         $booking = Booking::findOrFail($bookingId);
@@ -140,6 +141,7 @@ class ApiBookingController extends Controller
         }
 
         $booking->user_id = $request->user_id;
+        $booking->booking_date = $request->booking_date;
         $booking->save();
 
         return response()->json([
