@@ -129,6 +129,7 @@ class ApiBookingController extends Controller
     public function assignDriver(Request $request, $bookingId)
     {
         $request->validate([
+            'notes' => 'nullable',
             'user_id' => 'required|exists:users,id',
             'booking_date' => 'nullable|date_format:Y-m-d',
         ]);
@@ -142,6 +143,7 @@ class ApiBookingController extends Controller
 
         $booking->user_id = $request->user_id;
         $booking->booking_date = $request->booking_date;
+        $booking->notes = $request->notes;
         $booking->save();
 
         return response()->json([
@@ -313,5 +315,23 @@ class ApiBookingController extends Controller
         }
 
         return response()->json($bookings);
+    }
+
+    public function updateBookingDate(Request $request, $bookingId)
+    {
+        $request->validate([
+            'booking_date' => 'required|date_format:Y-m-d',
+        ]);
+
+        $booking = Booking::findOrFail($bookingId);
+        $previousBookingDate = $booking->booking_date;
+
+        $booking->booking_date = $request->booking_date;
+        $booking->save();
+
+        return response()->json([
+            'message' => "Booking date updated successfully from $previousBookingDate to {$request->booking_date}",
+            'booking' => $booking,
+        ]);
     }
 }

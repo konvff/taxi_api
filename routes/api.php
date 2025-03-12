@@ -45,5 +45,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/notifications/{id}/read', [NotificationController::class, 'markNotificationAsRead']);
     Route::get('/notifications', [NotificationController::class, 'getNotifications']);
     Route::get('/details/{userId}/users', [ApiBookingController::class, 'getDriverBookings']);
+    Route::put('/bookings/{bookingId}/update-date', [ApiBookingController::class, 'updateBookingDate']);
 
 });
