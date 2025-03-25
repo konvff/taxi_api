@@ -166,7 +166,7 @@ class DriverController extends Controller
 
         return response()->json([
             'message' => 'User status active updated successfully',
-            'booking' => $user,
+            'user' => $user,
         ], 200);
     }
 }
