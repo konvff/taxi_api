@@ -22,7 +22,7 @@ Route::post('/driver/create', [AuthController::class, 'register']);
 Route::post('/login/users', [AuthController::class, 'auth'])->withoutMiddleware('auth:sanctum');
 Route::post('/upload-image', [ImageUploadController::class, 'upload']);
 Route::get('/bookings/date', [ApiBookingController::class, 'getBookingsByDate']);
-
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users', [DriverController::class, 'index']);
     Route::get('/users/{id}', [DriverController::class, 'show']);

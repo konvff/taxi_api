@@ -55,6 +55,13 @@ class AuthController extends Controller
             'fcm_token' => 'required',
         ]);
 
+        $user = User::where('email', $credentials['email'])->first();
+
+    
+        if (! $user || $user->status == 1) {
+            return response()->json(['message' => 'Account expired or inactive'], 403);
+        }
+
         if (! Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }

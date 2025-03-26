@@ -110,15 +110,20 @@ class DriverController extends Controller
             'status' => 'required|integer',
         ]);
 
-        // Find the booking
+        // Find the user
         $user = User::find($id);
         if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Update the status
         $user->status = $request->status;
         $user->save();
+
+        if ($user->status == 1) {
+            return response()->json([
+                'message' => 'Session expired',
+            ], 401);
+        }
 
         return response()->json([
             'message' => 'User status updated successfully',
