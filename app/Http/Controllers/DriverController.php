@@ -95,7 +95,28 @@ class DriverController extends Controller
 
     public function userBookSngle(Request $request, $user_id)
     {
-        $bookings = Booking::where('user_id', $user_id)->get(); // Get bookings for the given user ID
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $query = Booking::where('user_id', $user_id);
+
+        // Apply filters based on `created_at`
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        } elseif ($startDate) {
+            $query->where('created_at', '>=', $startDate);
+        } elseif ($endDate) {
+            $query->where('created_at', '<=', $endDate);
+        }
+
+        $bookings = $query->orderBy('created_at', 'asc')->get(); // Get all fields
+
+        if ($bookings->isEmpty()) {
+            return response()->json([
+                'message' => 'No bookings found for this user',
+                'bookings' => [],
+            ], 404);
+        }
 
         return response()->json([
             'message' => 'User bookings retrieved successfully',
