@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -135,23 +136,67 @@ class ApiBookingController extends Controller
         ]);
 
         $booking = Booking::findOrFail($bookingId);
-        if ($booking->user_id) {
-            $previousDriverId = $booking->user_id;
-        } else {
-            $previousDriverId = null;
-        }
+        $previousDriverId = $booking->user_id ?? null;
 
         $booking->user_id = $request->user_id;
         $booking->booking_date = $request->booking_date;
         $booking->notes = $request->notes;
         $booking->save();
 
+        // Get the assigned driver's FCM token
+        $driver = User::find($request->user_id);
+        if ($driver && $driver->fcm_token) {
+            $notificationService = new FirebaseNotificationService;
+            $notificationService->sendNotification(
+                $driver->fcm_token,
+                'New Booking Assigned',
+                'You have been assigned a new booking!',
+                ['booking_id' => $bookingId]
+            );
+        }
+
         return response()->json([
             'message' => $previousDriverId
                 ? "Driver reassigned successfully from Driver ID: $previousDriverId to Driver ID: {$request->user_id}"
                 : 'Driver assigned successfully',
-            'booking' => $booking->load('user'), // Load user details if relationship exists
+            'booking' => $booking->load('user'),
         ]);
+    }
+
+    /**
+     * Function to send push notifications via Firebase Cloud Messaging (FCM)
+     */
+    private function sendPushNotification($fcmToken, $title, $body)
+    {
+        $serverKey = env('FIREBASE_SERVER_KEY'); // Ensure your Firebase server key is set in .env file
+
+        $data = [
+            'to' => $fcmToken,
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+                'sound' => 'default',
+            ],
+            'priority' => 'high',
+        ];
+
+        $headers = [
+            'Authorization: key='.$serverKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        return $response;
     }
 
     public function getUserBookings(Request $request): JsonResponse
