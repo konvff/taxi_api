@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class ApiBookingController extends Controller
 {
@@ -33,7 +34,7 @@ class ApiBookingController extends Controller
             'category' => 'required',
             'pickuplocation' => 'required',
             'destination' => 'required',
-            'amount' => 'required',
+            'amount' => 'requireuse App\Models\User;d',
             'notes' => 'nullable',
             'booking_date' => 'nullable|date',
         ]);
@@ -166,38 +167,7 @@ class ApiBookingController extends Controller
     /**
      * Function to send push notifications via Firebase Cloud Messaging (FCM)
      */
-    private function sendPushNotification($fcmToken, $title, $body)
-    {
-        $serverKey = env('FIREBASE_SERVER_KEY'); // Ensure your Firebase server key is set in .env file
-
-        $data = [
-            'to' => $fcmToken,
-            'notification' => [
-                'title' => $title,
-                'body' => $body,
-                'sound' => 'default',
-            ],
-            'priority' => 'high',
-        ];
-
-        $headers = [
-            'Authorization: key='.$serverKey,
-            'Content-Type: application/json',
-        ];
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        return $response;
-    }
+  
 
     public function getUserBookings(Request $request): JsonResponse
     {
