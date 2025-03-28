@@ -34,7 +34,7 @@ class ApiBookingController extends Controller
             'category' => 'required',
             'pickuplocation' => 'required',
             'destination' => 'required',
-            'amount' => 'requireuse App\Models\User;d',
+            'amount' => 'required',
             'notes' => 'nullable',
             'booking_date' => 'nullable|date',
         ]);
