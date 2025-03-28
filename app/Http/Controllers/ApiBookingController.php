@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\User;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\User;
 
 class ApiBookingController extends Controller
 {
@@ -167,8 +167,6 @@ class ApiBookingController extends Controller
     /**
      * Function to send push notifications via Firebase Cloud Messaging (FCM)
      */
-  
-
     public function getUserBookings(Request $request): JsonResponse
     {
 
