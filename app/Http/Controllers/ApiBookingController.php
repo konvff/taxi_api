@@ -33,9 +33,13 @@ class ApiBookingController extends Controller
             'email' => 'required|email',
             'category' => 'required',
             'pickuplocation' => 'required',
+            'pickup_latitude' => 'nullable|numeric|between:-90,90',
+            'pickup_longitude' => 'nullable|numeric|between:-180,180',
             'destination' => 'required',
-            'amount' => 'required',
-            'notes' => 'nullable',
+            'dropoff_latitude' => 'nullable|numeric|between:-90,90',
+            'dropoff_longitude' => 'nullable|numeric|between:-180,180',
+            'amount' => 'required|numeric',
+            'notes' => 'nullable|string',
             'booking_date' => 'nullable|date',
         ]);
 
@@ -74,9 +78,13 @@ class ApiBookingController extends Controller
             'email' => 'required|email',
             'category' => 'required',
             'pickuplocation' => 'required',
+            'pickup_latitude' => 'nullable|numeric|between:-90,90',
+            'pickup_longitude' => 'nullable|numeric|between:-180,180',
             'destination' => 'required',
-            'amount' => 'required',
-            'notes' => 'nullable',
+            'dropoff_latitude' => 'nullable|numeric|between:-90,90',
+            'dropoff_longitude' => 'nullable|numeric|between:-180,180',
+            'amount' => 'required|numeric',
+            'notes' => 'nullable|string',
             'booking_date' => 'nullable|date',
         ]);
 
