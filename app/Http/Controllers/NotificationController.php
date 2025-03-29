@@ -21,7 +21,7 @@ class NotificationController extends Controller
 
         $notification = Notification::create([
             'title' => $validatedData['title'],
-            'body' => $validatedData['body'],
+            'body' => $validatedData['body'] ?? null,
             'user_id' => $validatedData['user_id'],
             'receiver_id' => $validatedData['receiver_id'],
             'booking_id' => $validatedData['booking_id'] ?? null,
