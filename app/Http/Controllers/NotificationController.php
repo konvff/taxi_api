@@ -12,6 +12,7 @@ class NotificationController extends Controller
     {
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
+            'body' => 'nullable|string|max:255',
             'user_id' => 'required|exists:users,id',
             'receiver_id' => 'required|exists:users,id',
             'booking_id' => 'nullable|exists:bookings,id',
@@ -20,6 +21,7 @@ class NotificationController extends Controller
 
         $notification = Notification::create([
             'title' => $validatedData['title'],
+            'body' => $validatedData['body'],
             'user_id' => $validatedData['user_id'],
             'receiver_id' => $validatedData['receiver_id'],
             'booking_id' => $validatedData['booking_id'] ?? null,
@@ -58,19 +60,18 @@ class NotificationController extends Controller
     }
 
     public function markNotificationAsRead(Request $request, $id): JsonResponse
-{
-    $notification = Notification::find($id);
+    {
+        $notification = Notification::find($id);
 
-    if (!$notification) {
-        return response()->json(['message' => 'Notification not found'], 404);
+        if (! $notification) {
+            return response()->json(['message' => 'Notification not found'], 404);
+        }
+
+        $notification->update(['is_read' => true]);
+
+        return response()->json([
+            'message' => 'Notification marked as read successfully',
+            'notification' => $notification,
+        ], 200);
     }
-
-    $notification->update(['is_read' => true]);
-
-    return response()->json([
-        'message' => 'Notification marked as read successfully',
-        'notification' => $notification
-    ], 200);
-}
-
 }
