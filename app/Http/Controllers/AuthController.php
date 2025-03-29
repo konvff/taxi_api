@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -97,21 +96,22 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
 
-        $token = Str::random(64);
+        // Generate an 8-digit numeric code
+        $verificationCode = mt_rand(10000000, 99999999);
 
-        // Store the token in password_reset_tokens
+        // Store the code in password_reset_tokens table
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $request->email],
-            ['token' => $token, 'created_at' => now()]
+            ['token' => $verificationCode, 'created_at' => now()]
         );
 
-        // Send the reset token via email
-        Mail::raw("Your password reset token is: $token", function ($message) use ($request) {
+        // Send the verification code via email
+        Mail::send('emails.forgot_password', ['token' => $verificationCode], function ($message) use ($request) {
             $message->to($request->email)
-                ->subject('Password Reset Token');
+                ->subject('Password Reset Code');
         });
 
-        return response()->json(['message' => 'Reset token sent to email.'], 200);
+        return response()->json(['message' => 'Verification code sent to email.'], 200);
     }
 
     public function resetPassword(Request $request)
