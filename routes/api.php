@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/driver/create', [AuthController::class, 'register']);
 Route::post('/login/users', [AuthController::class, 'auth'])->withoutMiddleware('auth:sanctum');
 Route::post('/upload-image', [ImageUploadController::class, 'upload']);
