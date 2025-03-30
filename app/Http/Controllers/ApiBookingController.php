@@ -23,6 +23,74 @@ class ApiBookingController extends Controller
 
     }
 
+    public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|integer',
+    ]);
+
+    // Find the booking
+    $booking = Booking::find($id);
+    if (! $booking) {
+        return response()->json(['message' => 'Booking not found'], 404);
+    }
+
+    // Update the status
+    $booking->status = $request->status;
+    $booking->save();
+
+    // Get the driver (assuming the user making the request is the driver)
+    $driver = auth()->user(); // Ensure the authenticated user is retrieved correctly
+
+    // Check if the status is 2 (Ride Started) or 3 (Booking Completed)
+    if (in_array($request->status, [2, 3])) {
+        $this->sendAdminNotification($driver, $request->status);
+    }
+
+    return response()->json([
+        'message' => 'Booking status updated successfully',
+        'booking' => $booking,
+    ], 200);
+}
+
+/**
+ * Send a notification to all admins when the ride starts or completes.
+ *
+ * @param  User|null  $driver
+ * @param  int  $status
+ */
+private function sendAdminNotification(?User $driver, $status)
+{
+    // Fetch all admins
+    $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
+
+    if ($admins->isEmpty()) {
+        \Log::warning('No admin found with FCM token.');
+        return;
+    }
+
+    $firebaseService = new FirebaseNotificationService();
+
+    // Define the message based on status
+    $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
+    $messageBody = $status == 2
+        ? "Driver {$driver->name} has started the ride."
+        : "Driver {$driver->name} has completed the booking.";
+
+    // Send notification to all admins
+    foreach ($admins as $admin) {
+        $firebaseService->sendNotification(
+            $admin->fcm_token,
+            $messageTitle,
+            $messageBody,
+            [
+                'booking_id' => $driver->id ?? null,
+                'status' => $status,
+            ]
+        );
+    }
+}
+
     /**
      * Store a newly created resource in storage.
      */
@@ -293,29 +361,7 @@ class ApiBookingController extends Controller
         ], 200);
     }
 
-    public function updateStatus(Request $request, $id)
-    {
-
-        $request->validate([
-            'status' => 'required|integer',
-        ]);
-
-        // Find the booking
-        $booking = Booking::find($id);
-        if (! $booking) {
-            return response()->json(['message' => 'Booking not found'], 404);
-        }
-
-        // Update the status
-        $booking->status = $request->status;
-        $booking->save();
-
-        return response()->json([
-            'message' => 'Booking status updated successfully',
-            'booking' => $booking,
-        ], 200);
-    }
-
+   
     public function getBookingsByDate(Request $request)
     {
         $request->validate([
