@@ -142,12 +142,6 @@ class DriverController extends Controller
         $user->status = $request->status;
         $user->save();
 
-        if ($user->status == 1) {
-            return response()->json([
-                'message' => 'Session expired',
-            ], 401);
-        }
-
         return response()->json([
             'message' => 'User status updated successfully',
             'user' => $user,
