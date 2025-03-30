@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\User;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -142,10 +143,50 @@ class DriverController extends Controller
         $user->status = $request->status;
         $user->save();
 
+        // Check if the status is 2 (Ride Started) or 3 (Booking Completed)
+        if (in_array($request->status, [2, 3])) {
+            $this->sendAdminNotification($user, $request->status);
+        }
+
         return response()->json([
             'message' => 'User status updated successfully',
             'user' => $user,
         ], 200);
+    }
+
+    /**
+     * Send a notification to all admins when the ride starts or completes.
+     *
+     * @param  int  $status
+     */
+    private function sendAdminNotification(User $user, $status)
+    {
+        // Fetch all admins
+        $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
+
+        if ($admins->isEmpty()) {
+            \Log::warning('No admin found with FCM token.');
+
+            return;
+        }
+
+        $firebaseService = new FirebaseNotificationService;
+
+        // Define the message based on status
+        $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
+        $messageBody = $status == 2
+            ? "Driver {$user->name} has started the ride."
+            : "Driver {$user->name} has completed the booking.";
+
+        // Send notification to all admins
+        foreach ($admins as $admin) {
+            $firebaseService->sendNotification(
+                $admin->fcm_token,
+                $messageTitle,
+                $messageBody,
+                ['user_id' => $user->id, 'status' => $status]
+            );
+        }
     }
 
     public function updateRating(Request $request, $id)
