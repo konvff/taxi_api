@@ -24,6 +24,7 @@ class Booking extends Model
         'dropoff_longitude',
         'user_id',
         'amount',
+        'phone',
         'status',
         'notes',
         'booking_date',

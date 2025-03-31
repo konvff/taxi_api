@@ -24,72 +24,72 @@ class ApiBookingController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|integer',
-    ]);
+    {
+        $request->validate([
+            'status' => 'required|integer',
+        ]);
 
-    // Find the booking
-    $booking = Booking::find($id);
-    if (! $booking) {
-        return response()->json(['message' => 'Booking not found'], 404);
+        // Find the booking
+        $booking = Booking::find($id);
+        if (! $booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
+
+        // Update the status
+        $booking->status = $request->status;
+        $booking->save();
+
+        // Get the driver (assuming the user making the request is the driver)
+        $driver = auth()->user(); // Ensure the authenticated user is retrieved correctly
+
+        // Check if the status is 2 (Ride Started) or 3 (Booking Completed)
+        if (in_array($request->status, [2, 3])) {
+            $this->sendAdminNotification($driver, $request->status);
+        }
+
+        return response()->json([
+            'message' => 'Booking status updated successfully',
+            'booking' => $booking,
+        ], 200);
     }
 
-    // Update the status
-    $booking->status = $request->status;
-    $booking->save();
+    /**
+     * Send a notification to all admins when the ride starts or completes.
+     *
+     * @param  int  $status
+     */
+    private function sendAdminNotification(?User $driver, $status)
+    {
+        // Fetch all admins
+        $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
 
-    // Get the driver (assuming the user making the request is the driver)
-    $driver = auth()->user(); // Ensure the authenticated user is retrieved correctly
+        if ($admins->isEmpty()) {
+            \Log::warning('No admin found with FCM token.');
 
-    // Check if the status is 2 (Ride Started) or 3 (Booking Completed)
-    if (in_array($request->status, [2, 3])) {
-        $this->sendAdminNotification($driver, $request->status);
+            return;
+        }
+
+        $firebaseService = new FirebaseNotificationService;
+
+        // Define the message based on status
+        $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
+        $messageBody = $status == 2
+            ? "Driver {$driver->name} has started the ride."
+            : "Driver {$driver->name} has completed the booking.";
+
+        // Send notification to all admins
+        foreach ($admins as $admin) {
+            $firebaseService->sendNotification(
+                $admin->fcm_token,
+                $messageTitle,
+                $messageBody,
+                [
+                    'booking_id' => $driver->id ?? null,
+                    'status' => $status,
+                ]
+            );
+        }
     }
-
-    return response()->json([
-        'message' => 'Booking status updated successfully',
-        'booking' => $booking,
-    ], 200);
-}
-
-/**
- * Send a notification to all admins when the ride starts or completes.
- *
- * @param  User|null  $driver
- * @param  int  $status
- */
-private function sendAdminNotification(?User $driver, $status)
-{
-    // Fetch all admins
-    $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
-
-    if ($admins->isEmpty()) {
-        \Log::warning('No admin found with FCM token.');
-        return;
-    }
-
-    $firebaseService = new FirebaseNotificationService();
-
-    // Define the message based on status
-    $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
-    $messageBody = $status == 2
-        ? "Driver {$driver->name} has started the ride."
-        : "Driver {$driver->name} has completed the booking.";
-
-    // Send notification to all admins
-    foreach ($admins as $admin) {
-        $firebaseService->sendNotification(
-            $admin->fcm_token,
-            $messageTitle,
-            $messageBody,
-            [
-                'booking_id' => $driver->id ?? null,
-                'status' => $status,
-            ]
-        );
-    }
-}
 
     /**
      * Store a newly created resource in storage.
@@ -104,6 +104,7 @@ private function sendAdminNotification(?User $driver, $status)
             'pickup_latitude' => 'nullable|numeric|between:-90,90',
             'pickup_longitude' => 'nullable|numeric|between:-180,180',
             'destination' => 'required',
+            'phone' => 'required',
             'dropoff_latitude' => 'nullable|numeric|between:-90,90',
             'dropoff_longitude' => 'nullable|numeric|between:-180,180',
             'amount' => 'required|numeric',
@@ -149,6 +150,7 @@ private function sendAdminNotification(?User $driver, $status)
             'pickup_latitude' => 'nullable|numeric|between:-90,90',
             'pickup_longitude' => 'nullable|numeric|between:-180,180',
             'destination' => 'required',
+            'phone' => 'required',
             'dropoff_latitude' => 'nullable|numeric|between:-90,90',
             'dropoff_longitude' => 'nullable|numeric|between:-180,180',
             'amount' => 'required|numeric',
@@ -273,11 +275,11 @@ private function sendAdminNotification(?User $driver, $status)
 
         $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         return response()->json([
             'filter_applied' => $startDate && $endDate ? true : false,
@@ -332,12 +334,12 @@ private function sendAdminNotification(?User $driver, $status)
         $previousMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         $currentMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->sum('amount');
+            ->sum('amount') ?? 0;
 
         return response()->json([
             'user_id' => $userId,
@@ -361,7 +363,6 @@ private function sendAdminNotification(?User $driver, $status)
         ], 200);
     }
 
-   
     public function getBookingsByDate(Request $request)
     {
         $request->validate([
