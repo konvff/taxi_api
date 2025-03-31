@@ -272,6 +272,12 @@ class ApiBookingController extends Controller
         $completedRevenue = $completedBookings->sum('amount') ?? 0;
         $totalRevenue = $onGoingRevenue + $completedRevenue;
 
+        $previousMonthStart = now()->subMonth()->startOfMonth();
+        $previousMonthEnd = now()->subMonth()->endOfMonth();
+
+        $currentMonthStart = now()->startOfMonth();
+        $currentMonthEnd = now()->endOfMonth();
+
         if ($startDate && $endDate) {
             $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
                 ->where('status', 3)
@@ -281,7 +287,6 @@ class ApiBookingController extends Controller
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
         } else {
-            // Fix: Separate queries for previous and current month revenue
             $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
@@ -341,6 +346,12 @@ class ApiBookingController extends Controller
         $completedRevenue = $completedBookings->sum('amount');
         $totalRevenue = $onGoingRevenue + $completedRevenue;
 
+        $previousMonthStart = now()->subMonth()->startOfMonth();
+        $previousMonthEnd = now()->subMonth()->endOfMonth();
+
+        $currentMonthStart = now()->startOfMonth();
+        $currentMonthEnd = now()->endOfMonth();
+
         if ($startDate && $endDate) {
             // If filter is applied, calculate based on the selected date range
             $previousMonthRevenue = Booking::where('user_id', $userId)
@@ -355,12 +366,12 @@ class ApiBookingController extends Controller
         } else {
             // If no filter is applied, show revenue only for previous month & current month separately
             $previousMonthRevenue = Booking::where('user_id', $userId)
-                ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd]) // Fix: Ensuring only last month's data
+                ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd]) // Ensuring only last month's data
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
 
             $currentMonthRevenue = Booking::where('user_id', $userId)
-                ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd]) // Fix: Ensuring only this month's data
+                ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd]) // Ensuring only this month's data
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
         }
