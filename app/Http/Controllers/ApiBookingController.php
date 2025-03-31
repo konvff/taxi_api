@@ -275,11 +275,15 @@ class ApiBookingController extends Controller
 
         $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?: '0';
+            ->exists() // Check if records exist
+        ? Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])->where('status', 3)->sum('amount')
+        : 0;
 
         $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?: '0';
+            ->exists() // Check if records exist
+            ? Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])->where('status', 3)->sum('amount')
+            : 0;
 
         return response()->json([
             'filter_applied' => $startDate && $endDate ? true : false,
@@ -330,16 +334,25 @@ class ApiBookingController extends Controller
         $onGoingRevenue = $onGoingBookings->sum('amount');
         $completedRevenue = $completedBookings->sum('amount');
         $totalRevenue = $onGoingRevenue + $completedRevenue;
-
         $previousMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?: '0';
+            ->exists() // Check if records exist
+        ? Booking::where('user_id', $userId)
+            ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+            ->where('status', 3)
+            ->sum('amount')
+        : 0;
 
         $currentMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?: '0';
+            ->exists() // Check if records exist
+            ? Booking::where('user_id', $userId)
+                ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+                ->where('status', 3)
+                ->sum('amount')
+            : 0;
 
         return response()->json([
             'user_id' => $userId,
