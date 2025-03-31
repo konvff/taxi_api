@@ -247,7 +247,6 @@ class ApiBookingController extends Controller
      */
     public function getUserBookings(Request $request): JsonResponse
     {
-
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
@@ -269,17 +268,24 @@ class ApiBookingController extends Controller
         $unassignBookings = $queryUnassign->get();
         $completedBookings = $queryCompleted->get();
 
-        $onGoingRevenue = $onGoingBookings->sum('amount');
-        $completedRevenue = $completedBookings->sum('amount');
+        $onGoingRevenue = $onGoingBookings->sum('amount') ?? 0;
+        $completedRevenue = $completedBookings->sum('amount') ?? 0;
         $totalRevenue = $onGoingRevenue + $completedRevenue;
 
-        $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
-            ->where('status', 3)
-            ->sum('amount') ?? 0;
+        if ($startDate && $endDate) {
+            // If filter applied, show revenue for the selected date range
+            $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
 
-        $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
-            ->where('status', 3)
-            ->sum('amount') ?? 0;
+            $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
+        } else {
+            // If no filter is applied, show overall data
+            $previousMonthRevenue = Booking::where('status', 3)->sum('amount') ?? 0;
+            $currentMonthRevenue = $previousMonthRevenue;
+        }
 
         return response()->json([
             'filter_applied' => $startDate && $endDate ? true : false,
@@ -296,9 +302,9 @@ class ApiBookingController extends Controller
                 'bookings' => $completedBookings,
                 'revenue' => $completedRevenue,
             ],
-            'total_revenue' => $totalRevenue,
-            'previous_month_revenue' => $previousMonthRevenue,
-            'current_month_revenue' => $currentMonthRevenue,
+            'total_revenue' => $totalRevenue ?? 0,
+            'previous_month_revenue' => $previousMonthRevenue ?? 0,
+            'current_month_revenue' => $currentMonthRevenue ?? 0,
         ], 200);
     }
 
@@ -331,15 +337,25 @@ class ApiBookingController extends Controller
         $completedRevenue = $completedBookings->sum('amount');
         $totalRevenue = $onGoingRevenue + $completedRevenue;
 
-        $previousMonthRevenue = Booking::where('user_id', $userId)
-            ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
-            ->where('status', 3)
-            ->sum('amount') ?? 0;
+        if ($startDate && $endDate) {
+            // If filter applied, show revenue for the selected date range
+            $previousMonthRevenue = Booking::where('user_id', $userId)
+                ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
 
-        $currentMonthRevenue = Booking::where('user_id', $userId)
-            ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
-            ->where('status', 3)
-            ->sum('amount') ?? 0;
+            $currentMonthRevenue = Booking::where('user_id', $userId)
+                ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
+        } else {
+            // If no filter is applied, show overall data for the user
+            $previousMonthRevenue = Booking::where('user_id', $userId)
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
+
+            $currentMonthRevenue = $previousMonthRevenue; // No filter means both are the same
+        }
 
         return response()->json([
             'user_id' => $userId,
@@ -357,9 +373,9 @@ class ApiBookingController extends Controller
                 'bookings' => $completedBookings,
                 'revenue' => $completedRevenue,
             ],
-            'total_revenue' => $totalRevenue,
-            'previous_month_revenue' => $previousMonthRevenue,
-            'current_month_revenue' => $currentMonthRevenue,
+            'total_revenue' => $totalRevenue ?? 0,
+            'previous_month_revenue' => $previousMonthRevenue ?? 0,
+            'current_month_revenue' => $currentMonthRevenue ?? 0,
         ], 200);
     }
 
