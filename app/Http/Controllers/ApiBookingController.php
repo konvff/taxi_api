@@ -272,26 +272,14 @@ class ApiBookingController extends Controller
         $onGoingRevenue = $onGoingBookings->sum('amount');
         $completedRevenue = $completedBookings->sum('amount');
         $totalRevenue = $onGoingRevenue + $completedRevenue;
-        $previousMonthRevenue = 0;
-        $currentMonthRevenue = 0;
 
-        // Fetch previous month revenue only if records exist
-        if (Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+        $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->exists()) {
-            $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
-                ->where('status', 3)
-                ->sum('amount');
-        }
+            ->sum('amount') ?? 0;
 
-        // Fetch current month revenue only if records exist
-        if (Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+        $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->exists()) {
-            $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
-                ->where('status', 3)
-                ->sum('amount');
-        }
+            ->sum('amount') ?? 0;
 
         return response()->json([
             'filter_applied' => $startDate && $endDate ? true : false,
@@ -342,30 +330,16 @@ class ApiBookingController extends Controller
         $onGoingRevenue = $onGoingBookings->sum('amount');
         $completedRevenue = $completedBookings->sum('amount');
         $totalRevenue = $onGoingRevenue + $completedRevenue;
-        $previousMonthRevenue = 0;
-        $currentMonthRevenue = 0;
 
-        // Only fetch data for previous month if there's relevant data
-        if (Booking::where('user_id', $userId)
+        $previousMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->exists()) {
-            $previousMonthRevenue = Booking::where('user_id', $userId)
-                ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
-                ->where('status', 3)
-                ->sum('amount');
-        }
+            ->sum('amount') ?? 0;
 
-        // Only fetch data for current month if there's relevant data
-        if (Booking::where('user_id', $userId)
+        $currentMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->exists()) {
-            $currentMonthRevenue = Booking::where('user_id', $userId)
-                ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
-                ->where('status', 3)
-                ->sum('amount');
-        }
+            ->sum('amount') ?? 0;
 
         return response()->json([
             'user_id' => $userId,
