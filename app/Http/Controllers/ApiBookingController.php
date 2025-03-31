@@ -275,11 +275,11 @@ class ApiBookingController extends Controller
 
         $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?? 0;
+            ->sum('amount') ?: '0';
 
         $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?? 0;
+            ->sum('amount') ?: '0';
 
         return response()->json([
             'filter_applied' => $startDate && $endDate ? true : false,
@@ -334,12 +334,12 @@ class ApiBookingController extends Controller
         $previousMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?? 0;
+            ->sum('amount') ?: '0';
 
         $currentMonthRevenue = Booking::where('user_id', $userId)
             ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
-            ->sum('amount') ?? 0;
+            ->sum('amount') ?: '0';
 
         return response()->json([
             'user_id' => $userId,
