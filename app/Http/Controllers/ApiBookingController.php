@@ -273,7 +273,6 @@ class ApiBookingController extends Controller
         $totalRevenue = $onGoingRevenue + $completedRevenue;
 
         if ($startDate && $endDate) {
-            // If filter applied, show revenue for the selected date range
             $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
@@ -282,9 +281,14 @@ class ApiBookingController extends Controller
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
         } else {
-            // If no filter is applied, show overall data
-            $previousMonthRevenue = Booking::where('status', 3)->sum('amount') ?? 0;
-            $currentMonthRevenue = $previousMonthRevenue;
+            // Fix: Separate queries for previous and current month revenue
+            $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
+
+            $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
         }
 
         return response()->json([
@@ -349,12 +353,16 @@ class ApiBookingController extends Controller
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
         } else {
-            // If no filter is applied, show overall data for the user
+            // If no filter is applied, show overall revenue correctly
             $previousMonthRevenue = Booking::where('user_id', $userId)
+                ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
                 ->where('status', 3)
                 ->sum('amount') ?? 0;
 
-            $currentMonthRevenue = $previousMonthRevenue; // No filter means both are the same
+            $currentMonthRevenue = Booking::where('user_id', $userId)
+                ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+                ->where('status', 3)
+                ->sum('amount') ?? 0;
         }
 
         return response()->json([
