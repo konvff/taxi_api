@@ -134,35 +134,41 @@ class ApiBookingController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $booking = Booking::find($id);
 
-        if (! $booking) {
-            return response()->json(['message' => 'Booking not found'], 404);
+        try {
+            $booking = Booking::find($id);
+
+            if (! $booking) {
+                return response()->json(['message' => 'Booking not found'], 404);
+            }
+
+            if ($booking->created_by !== 'admin') {
+                return response()->json(['message' => 'Unauthorized: Only admin-created bookings can be updated'], 403);
+            }
+
+            $request->validate([
+                'name' => 'required',
+                'email' => 'nullable|email',
+                'category' => 'required',
+                'pickuplocation' => 'required',
+                'pickup_latitude' => 'nullable|numeric|between:-90,90',
+                'pickup_longitude' => 'nullable|numeric|between:-180,180',
+                'destination' => 'required',
+                'phone' => 'required',
+                'dropoff_latitude' => 'nullable|numeric|between:-90,90',
+                'dropoff_longitude' => 'nullable|numeric|between:-180,180',
+                'amount' => 'nullable|numeric',
+                'notes' => 'nullable|string',
+                'booking_date' => 'nullable|date',
+            ]);
+
+            $booking->update($request->all());
+
+            return response()->json($booking, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred', 'message' => $e->getMessage()], 500);
         }
 
-        if ($booking->created_by !== 'admin') {
-            return response()->json(['message' => 'Unauthorized: Only admin-created bookings can be updated'], 403);
-        }
-
-        $request->validate([
-            'name' => 'required',
-            'email' => 'nullable|email',
-            'category' => 'required',
-            'pickuplocation' => 'required',
-            'pickup_latitude' => 'nullable|numeric|between:-90,90',
-            'pickup_longitude' => 'nullable|numeric|between:-180,180',
-            'destination' => 'required',
-            'phone' => 'required',
-            'dropoff_latitude' => 'nullable|numeric|between:-90,90',
-            'dropoff_longitude' => 'nullable|numeric|between:-180,180',
-            'amount' => 'nullable|numeric',
-            'notes' => 'nullable|string',
-            'booking_date' => 'nullable|date',
-        ]);
-
-        $booking->update($request->all());
-
-        return response()->json($booking, 200);
     }
 
     /**
