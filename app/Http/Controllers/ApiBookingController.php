@@ -141,11 +141,6 @@ class ApiBookingController extends Controller
             if (! $booking) {
                 return response()->json(['message' => 'Booking not found'], 404);
             }
-
-            if ($booking->created_by !== 'admin') {
-                return response()->json(['message' => 'Unauthorized: Only admin-created bookings can be updated'], 403);
-            }
-
             $request->validate([
                 'name' => 'required',
                 'email' => 'nullable|email',
