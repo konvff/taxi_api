@@ -38,7 +38,7 @@ class DriverController extends Controller
 
         $validatedData = $request->validate([
             'name' => 'string|max:255',
-            'email' => 'string|email|unique:users,email,'.$id,
+            'email' => 'nullable|email|unique:users,email,'.$id,
             'phone' => 'string|max:255',
             'category' => 'string|max:255',
             'location' => 'string|max:255',
