@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\FirebaseNotificationService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class ApiBookingController extends Controller
 {
@@ -36,14 +36,10 @@ class ApiBookingController extends Controller
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
-        // Update the status
         $booking->status = $request->status;
         $booking->save();
+        $driver = auth()->user();
 
-        // Get the driver (assuming the user making the request is the driver)
-        $driver = auth()->user(); // Ensure the authenticated user is retrieved correctly
-
-        // Check if the status is 2 (Ride Started) or 3 (Booking Completed)
         if (in_array($request->status, [2, 3])) {
             $this->sendAdminNotification($driver, $request->status);
         }
@@ -99,7 +95,7 @@ class ApiBookingController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             'category' => 'required',
             'pickuplocation' => 'required',
             'pickup_latitude' => 'nullable|numeric|between:-90,90',
@@ -108,7 +104,8 @@ class ApiBookingController extends Controller
             'phone' => 'required',
             'dropoff_latitude' => 'nullable|numeric|between:-90,90',
             'dropoff_longitude' => 'nullable|numeric|between:-180,180',
-            'amount' => 'required|numeric',
+            'amount' => 'nullable',
+            'created_by' => 'nullable',
             'notes' => 'nullable|string',
             'booking_date' => 'nullable|date',
         ]);
@@ -143,9 +140,13 @@ class ApiBookingController extends Controller
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
+        if ($booking->created_by !== 'admin') {
+            return response()->json(['message' => 'Unauthorized: Only admin-created bookings can be updated'], 403);
+        }
+
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             'category' => 'required',
             'pickuplocation' => 'required',
             'pickup_latitude' => 'nullable|numeric|between:-90,90',
@@ -154,7 +155,7 @@ class ApiBookingController extends Controller
             'phone' => 'required',
             'dropoff_latitude' => 'nullable|numeric|between:-90,90',
             'dropoff_longitude' => 'nullable|numeric|between:-180,180',
-            'amount' => 'required|numeric',
+            'amount' => 'nullable|numeric',
             'notes' => 'nullable|string',
             'booking_date' => 'nullable|date',
         ]);
