@@ -84,16 +84,37 @@ class DriverController extends Controller
         return response()->json(['message' => 'User deleted successfully'], 200);
     }
 
-    public function userBookings(Request $request)
+    public function userBookings(Request $request, $user_id)
     {
-        $user = $request->user(); // Get authenticated user
+        try {
+            // Validate user_id to ensure it's a number
+            if (! is_numeric($user_id)) {
+                return response()->json([
+                    'message' => 'Invalid user ID provided',
+                ], 400);
+            }
 
-        $bookings = Booking::where('user_id', $user->id)->get(); // Get user's bookings
+            // Fetch bookings for the user
+            $bookings = Booking::where('user_id', $user_id)->get();
 
-        return response()->json([
-            'message' => 'User bookings retrieved successfully',
-            'bookings' => $bookings,
-        ]);
+            // Check if bookings exist
+            if ($bookings->isEmpty()) {
+                return response()->json([
+                    'message' => 'No bookings found for this user',
+                    'bookings' => [],
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'User bookings retrieved successfully',
+                'bookings' => $bookings,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while fetching bookings',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function userBookSngle(Request $request, $user_id)
