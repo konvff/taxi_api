@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
+            'email' => 'nullable',
             'password' => 'required|string|min:8',
             'phone' => 'required|string',
             'role' => 'required|string',
@@ -31,7 +31,7 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $validatedData['name'],
             'photo_url' => $validatedData['photo_url'] ?? null,
-            'email' => $validatedData['email'] ?? NULL,
+            'email' => $validatedData['email'] ?? 'null',
             'phone' => $validatedData['phone'],
             'category' => $validatedData['category'],
             'location' => $validatedData['location'],
