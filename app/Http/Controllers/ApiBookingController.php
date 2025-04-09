@@ -105,6 +105,7 @@ class ApiBookingController extends Controller
             'dropoff_latitude' => 'nullable|numeric|between:-90,90',
             'dropoff_longitude' => 'nullable|numeric|between:-180,180',
             'amount' => 'nullable',
+            'customer_id' => 'nullable|exists:users,id',
             'created_by' => 'nullable',
             'notes' => 'nullable|string',
             'booking_date' => 'nullable|date',
