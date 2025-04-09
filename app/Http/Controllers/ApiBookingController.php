@@ -253,32 +253,39 @@ class ApiBookingController extends Controller
             'booking_date' => 'nullable|date_format:Y-m-d',
         ]);
 
-        $booking = Booking::findOrFail($bookingId);
-        $previousDriverId = $booking->customer_id ?? null;
+        try {
+            $booking = Booking::findOrFail($bookingId);
+            $previousCustomerId = $booking->customer_id ?? null;
 
-        $booking->customer_id = $request->customer_id;
-        $booking->booking_date = $request->booking_date;
-        $booking->notes = $request->notes;
-        $booking->save();
+            $booking->customer_id = $request->customer_id;
+            $booking->booking_date = $request->booking_date;
+            $booking->notes = $request->notes;
+            $booking->save();
 
-        // Get the assigned driver's FCM token
-        $driver = User::find($request->customer_id);
-        if ($driver && $driver->fcm_token) {
-            $notificationService = new FirebaseNotificationService;
-            $notificationService->sendNotification(
-                $driver->fcm_token,
-                'New Booking Assigned',
-                'You have been assigned a new booking!',
-                ['booking_id' => $bookingId]
-            );
+            // Notify the assigned customer
+            $customer = User::find($request->customer_id);
+            if ($customer && $customer->fcm_token) {
+                $notificationService = new FirebaseNotificationService;
+                $notificationService->sendNotification(
+                    $customer->fcm_token,
+                    'New Booking Assigned',
+                    'You have been assigned a new booking!',
+                    ['booking_id' => $bookingId]
+                );
+            }
+
+            return response()->json([
+                'message' => $previousCustomerId
+                    ? "Customer reassigned successfully from Customer ID: $previousCustomerId to Customer ID: {$request->customer_id}"
+                    : 'Customer assigned successfully',
+                'booking' => $booking->load('customer'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while assigning the customer.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'message' => $previousDriverId
-                ? "Customer reassigned successfully from Driver ID: $previousDriverId to Driver ID: {$request->user_id}"
-                : 'Customer assigned successfully',
-            'booking' => $booking->load('customer'),
-        ]);
     }
 
     /**
