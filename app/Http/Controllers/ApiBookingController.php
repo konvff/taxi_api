@@ -262,7 +262,7 @@ class ApiBookingController extends Controller
         $booking->save();
 
         // Get the assigned driver's FCM token
-        $driver = User::find($request->user_id);
+        $driver = User::find($request->customer_id);
         if ($driver && $driver->fcm_token) {
             $notificationService = new FirebaseNotificationService;
             $notificationService->sendNotification(
