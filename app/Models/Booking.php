@@ -34,11 +34,10 @@ class Booking extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    // In Booking.php model
-    public function users()
+    public function customer()
     {
         return $this->belongsTo(User::class, 'customer_id');
     }
