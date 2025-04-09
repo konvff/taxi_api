@@ -245,6 +245,42 @@ class ApiBookingController extends Controller
         ]);
     }
 
+    public function assignCustomer(Request $request, $bookingId)
+    {
+        $request->validate([
+            'notes' => 'nullable',
+            'customer_id' => 'required|exists:users,id',
+            'booking_date' => 'nullable|date_format:Y-m-d',
+        ]);
+
+        $booking = Booking::findOrFail($bookingId);
+        $previousDriverId = $booking->customer_id ?? null;
+
+        $booking->customer_id = $request->customer_id;
+        $booking->booking_date = $request->booking_date;
+        $booking->notes = $request->notes;
+        $booking->save();
+
+        // Get the assigned driver's FCM token
+        $driver = User::find($request->user_id);
+        if ($driver && $driver->fcm_token) {
+            $notificationService = new FirebaseNotificationService;
+            $notificationService->sendNotification(
+                $driver->fcm_token,
+                'New Booking Assigned',
+                'You have been assigned a new booking!',
+                ['booking_id' => $bookingId]
+            );
+        }
+
+        return response()->json([
+            'message' => $previousDriverId
+                ? "Customer reassigned successfully from Driver ID: $previousDriverId to Driver ID: {$request->user_id}"
+                : 'Customer assigned successfully',
+            'booking' => $booking->load('user'),
+        ]);
+    }
+
     /**
      * Function to send push notifications via Firebase Cloud Messaging (FCM)
      */

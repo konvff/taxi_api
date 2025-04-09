@@ -115,6 +115,37 @@ class DriverController extends Controller
         ]);
     }
 
+    public function customerBookSngle(Request $request, $user_id)
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $query = Booking::where('customer_id', $user_id);
+
+        // Apply filters based on `created_at`
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        } elseif ($startDate) {
+            $query->where('created_at', '>=', $startDate);
+        } elseif ($endDate) {
+            $query->where('created_at', '<=', $endDate);
+        }
+
+        $bookings = $query->orderBy('created_at', 'asc')->get(); // Get all fields
+
+        if ($bookings->isEmpty()) {
+            return response()->json([
+                'message' => 'No bookings found for this user',
+                'bookings' => [],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'User bookings retrieved successfully',
+            'bookings' => $bookings,
+        ]);
+    }
+
     public function updateStatus(Request $request, $id)
     {
         // Validate the request

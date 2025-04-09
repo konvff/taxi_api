@@ -41,7 +41,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('bookings/permanent/{id}', [ApiBookingController::class, 'forceDelete']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/bookings/{booking}/assign-driver', [ApiBookingController::class, 'assignDriver']);
+    Route::post('/bookings/{booking}/assign-customer', [ApiBookingController::class, 'assignCustomer']);
     Route::get('/user/bookings/{user_id}', [DriverController::class, 'userBookSngle']);
+    Route::get('/customer/bookings/{user_id}', [DriverController::class, 'customerBookSngle']);
     Route::get('/dashboard/user', [ApiBookingController::class, 'getUserBookings']);
     Route::post('/notifications', [NotificationController::class, 'createNotification']);
     Route::put('/notifications/{id}/read', [NotificationController::class, 'markNotificationAsRead']);
