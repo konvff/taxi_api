@@ -277,7 +277,7 @@ class ApiBookingController extends Controller
             'message' => $previousDriverId
                 ? "Customer reassigned successfully from Driver ID: $previousDriverId to Driver ID: {$request->user_id}"
                 : 'Customer assigned successfully',
-            'booking' => $booking->load('user'),
+            'booking' => $booking->load('users'),
         ]);
     }
 

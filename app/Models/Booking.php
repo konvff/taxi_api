@@ -36,4 +36,10 @@ class Booking extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // In Booking.php model
+    public function users()
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
 }
