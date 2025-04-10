@@ -307,8 +307,8 @@ class ApiBookingController extends Controller
         $queryCompleted = Booking::with('user')->where('status', 3);
 
         if ($startDate && $endDate) {
-            $queryOngoing->whereBetween('created_at', [$startDate, $endDate]);
-            $queryCompleted->whereBetween('created_at', [$startDate, $endDate]);
+            $queryOngoing->whereBetween('updated_at', [$startDate, $endDate]);
+            $queryCompleted->whereBetween('updated_at', [$startDate, $endDate]);
         }
 
         $onGoingBookings = $queryOngoing->get();
@@ -322,11 +322,11 @@ class ApiBookingController extends Controller
         if ($startDate && $endDate) {
             if ($startDate === $endDate) {
                 $totalRevenue = Booking::whereIn('status', [3])
-                    ->whereDate('created_at', $startDate)
+                    ->whereDate('updated_at', $startDate)
                     ->sum('amount') ?? 0;
             } else {
                 $totalRevenue = Booking::whereIn('status', [3])
-                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->whereBetween('updated_at', [$startDate, $endDate])
                     ->sum('amount') ?? 0;
             }
         } else {
@@ -337,15 +337,15 @@ class ApiBookingController extends Controller
         $dailyRevenue = 0;
         if ($startDate && $endDate && $startDate === $endDate) {
             $dailyRevenue = Booking::where('status', 3)
-                ->whereDate('created_at', $startDate)
+                ->whereDate('updated_at', $startDate)
                 ->sum('amount') ?? 0;
         }
 
-        $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+        $previousMonthRevenue = Booking::whereBetween('updated_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
             ->sum('amount') ?? 0;
 
-        $currentMonthRevenue = Booking::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+        $currentMonthRevenue = Booking::whereBetween('updated_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
             ->sum('amount') ?? 0;
 
@@ -386,8 +386,8 @@ class ApiBookingController extends Controller
         $queryCompleted = Booking::with('user')->where('user_id', $userId)->where('status', 3);
 
         if ($startDate && $endDate) {
-            $queryOngoing->whereBetween('created_at', [$startDate, $endDate]);
-            $queryCompleted->whereBetween('created_at', [$startDate, $endDate]);
+            $queryOngoing->whereBetween('updated_at', [$startDate, $endDate]);
+            $queryCompleted->whereBetween('updated_at', [$startDate, $endDate]);
         }
 
         $onGoingBookings = $queryOngoing->get();
@@ -402,12 +402,12 @@ class ApiBookingController extends Controller
             if ($startDate === $endDate) {
                 $totalRevenue = Booking::where('user_id', $userId)
                     ->whereIn('status', [3])
-                    ->whereDate('created_at', $startDate)
+                    ->whereDate('updated_at', $startDate)
                     ->sum('amount') ?? 0;
             } else {
                 $totalRevenue = Booking::where('user_id', $userId)
                     ->whereIn('status', [3])
-                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->whereBetween('updated_at', [$startDate, $endDate])
                     ->sum('amount') ?? 0;
             }
         } else {
@@ -421,17 +421,17 @@ class ApiBookingController extends Controller
         if ($startDate && $endDate && $startDate === $endDate) {
             $dailyRevenue = Booking::where('user_id', $userId)
                 ->where('status', 3)
-                ->whereDate('created_at', $startDate)
+                ->whereDate('updated_at', $startDate)
                 ->sum('amount') ?? 0;
         }
 
         $previousMonthRevenue = Booking::where('user_id', $userId)
-            ->whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
+            ->whereBetween('updated_at', [$previousMonthStart, $previousMonthEnd])
             ->where('status', 3)
             ->sum('amount') ?? 0;
 
         $currentMonthRevenue = Booking::where('user_id', $userId)
-            ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+            ->whereBetween('updated_at', [$currentMonthStart, $currentMonthEnd])
             ->where('status', 3)
             ->sum('amount') ?? 0;
 
