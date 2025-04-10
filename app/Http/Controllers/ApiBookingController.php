@@ -318,7 +318,7 @@ class ApiBookingController extends Controller
         $onGoingRevenue = $onGoingBookings->sum('amount') ?? 0;
         $completedRevenue = $completedBookings->sum('amount') ?? 0;
 
-        // Updated total revenue logic
+        // Total revenue logic
         if ($startDate && $endDate) {
             if ($startDate === $endDate) {
                 $totalRevenue = Booking::whereIn('status', [3])
@@ -331,6 +331,14 @@ class ApiBookingController extends Controller
             }
         } else {
             $totalRevenue = Booking::whereIn('status', [3])->sum('amount') ?? 0;
+        }
+
+        // Daily revenue logic
+        $dailyRevenue = 0;
+        if ($startDate && $endDate && $startDate === $endDate) {
+            $dailyRevenue = Booking::where('status', 3)
+                ->whereDate('created_at', $startDate)
+                ->sum('amount') ?? 0;
         }
 
         $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
@@ -357,6 +365,7 @@ class ApiBookingController extends Controller
                 'revenue' => $completedRevenue,
             ],
             'total_revenue' => $totalRevenue,
+            'daily_revenue' => $dailyRevenue,
             'previous_month_revenue' => $previousMonthRevenue,
             'current_month_revenue' => $currentMonthRevenue,
         ], 200);
@@ -388,7 +397,7 @@ class ApiBookingController extends Controller
         $onGoingRevenue = $onGoingBookings->sum('amount') ?? 0;
         $completedRevenue = $completedBookings->sum('amount') ?? 0;
 
-        // Updated total revenue logic for specific driver
+        // Total revenue logic for driver
         if ($startDate && $endDate) {
             if ($startDate === $endDate) {
                 $totalRevenue = Booking::where('user_id', $userId)
@@ -404,6 +413,15 @@ class ApiBookingController extends Controller
         } else {
             $totalRevenue = Booking::where('user_id', $userId)
                 ->whereIn('status', [3])
+                ->sum('amount') ?? 0;
+        }
+
+        // Daily revenue logic for driver
+        $dailyRevenue = 0;
+        if ($startDate && $endDate && $startDate === $endDate) {
+            $dailyRevenue = Booking::where('user_id', $userId)
+                ->where('status', 3)
+                ->whereDate('created_at', $startDate)
                 ->sum('amount') ?? 0;
         }
 
@@ -434,6 +452,7 @@ class ApiBookingController extends Controller
                 'revenue' => $completedRevenue,
             ],
             'total_revenue' => $totalRevenue,
+            'daily_revenue' => $dailyRevenue,
             'previous_month_revenue' => $previousMonthRevenue,
             'current_month_revenue' => $currentMonthRevenue,
         ], 200);
