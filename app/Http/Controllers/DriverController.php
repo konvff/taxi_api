@@ -40,7 +40,7 @@ class DriverController extends Controller
             'name' => 'string|max:255',
             'email' => 'nullable',
             'phone' => 'string|max:255',
-            'category' => 'string|max:255',
+            'category' => 'nullable|string|max:255',
             'location' => 'string|max:255',
             'role' => 'string|max:255',
             'car_name' => 'nullable|string|max:255',
