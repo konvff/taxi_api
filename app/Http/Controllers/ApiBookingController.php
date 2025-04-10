@@ -321,16 +321,16 @@ class ApiBookingController extends Controller
         // Updated total revenue logic
         if ($startDate && $endDate) {
             if ($startDate === $endDate) {
-                $totalRevenue = Booking::whereIn('status', [2, 3])
+                $totalRevenue = Booking::whereIn('status', [3])
                     ->whereDate('created_at', $startDate)
                     ->sum('amount') ?? 0;
             } else {
-                $totalRevenue = Booking::whereIn('status', [2, 3])
+                $totalRevenue = Booking::whereIn('status', [3])
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->sum('amount') ?? 0;
             }
         } else {
-            $totalRevenue = Booking::whereIn('status', [2, 3])->sum('amount') ?? 0;
+            $totalRevenue = Booking::whereIn('status', [3])->sum('amount') ?? 0;
         }
 
         $previousMonthRevenue = Booking::whereBetween('created_at', [$previousMonthStart, $previousMonthEnd])
@@ -392,18 +392,18 @@ class ApiBookingController extends Controller
         if ($startDate && $endDate) {
             if ($startDate === $endDate) {
                 $totalRevenue = Booking::where('user_id', $userId)
-                    ->whereIn('status', [2, 3])
+                    ->whereIn('status', [3])
                     ->whereDate('created_at', $startDate)
                     ->sum('amount') ?? 0;
             } else {
                 $totalRevenue = Booking::where('user_id', $userId)
-                    ->whereIn('status', [2, 3])
+                    ->whereIn('status', [3])
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->sum('amount') ?? 0;
             }
         } else {
             $totalRevenue = Booking::where('user_id', $userId)
-                ->whereIn('status', [2, 3])
+                ->whereIn('status', [3])
                 ->sum('amount') ?? 0;
         }
 
