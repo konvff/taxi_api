@@ -33,7 +33,7 @@ class AuthController extends Controller
             'photo_url' => $validatedData['photo_url'] ?? null,
             'email' => $validatedData['email'] ?? null,
             'phone' => $validatedData['phone'],
-            'category' => $validatedData['category'],
+            'category' => $validatedData['category'] ?? null,
             'location' => $validatedData['location'],
             'password' => Hash::make($validatedData['password']),
             'role' => $validatedData['role'],
