@@ -425,12 +425,13 @@ class ApiBookingController extends Controller
         if ($startDate && $endDate && $startDate === $endDate) {
             $dailyRevenue = Booking::where('user_id', $userId)
                 ->where('status', 3)
-                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->whereDate('updated_at', $startDate)
                 ->sum('amount') ?? 0;
         } else {
             $dailyRevenue = Booking::where('user_id', $userId)
                 ->where('status', 3)
-                ->whereDate('updated_at', $startDate)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+
                 ->sum('amount') ?? 0;
         }
 
