@@ -339,6 +339,10 @@ class ApiBookingController extends Controller
             $dailyRevenue = Booking::where('status', 3)
                 ->whereDate('updated_at', $startDate)
                 ->sum('amount') ?? 0;
+        } else {
+            $dailyRevenue = Booking::where('status', 3)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->sum('amount') ?? 0;
         }
 
         $previousMonthRevenue = Booking::whereBetween('updated_at', [$previousMonthStart, $previousMonthEnd])
@@ -365,7 +369,7 @@ class ApiBookingController extends Controller
                 'revenue' => $completedRevenue,
             ],
             'total_revenue' => $totalRevenue,
-            'daily_revenue' => $dailyRevenue,
+            'filter_revenue' => $dailyRevenue,
             'previous_month_revenue' => $previousMonthRevenue,
             'current_month_revenue' => $currentMonthRevenue,
         ], 200);
@@ -421,6 +425,11 @@ class ApiBookingController extends Controller
         if ($startDate && $endDate && $startDate === $endDate) {
             $dailyRevenue = Booking::where('user_id', $userId)
                 ->where('status', 3)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->sum('amount') ?? 0;
+        } else {
+            $dailyRevenue = Booking::where('user_id', $userId)
+                ->where('status', 3)
                 ->whereDate('updated_at', $startDate)
                 ->sum('amount') ?? 0;
         }
@@ -452,7 +461,7 @@ class ApiBookingController extends Controller
                 'revenue' => $completedRevenue,
             ],
             'total_revenue' => $totalRevenue,
-            'daily_revenue' => $dailyRevenue,
+            'filter_revenue' => $dailyRevenue,
             'previous_month_revenue' => $previousMonthRevenue,
             'current_month_revenue' => $currentMonthRevenue,
         ], 200);
