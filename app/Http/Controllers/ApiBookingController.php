@@ -297,6 +297,8 @@ class ApiBookingController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
+        $startDate = $startDate ? Carbon::parse($startDate)->startOfDay() : null;
+        $endDate = $endDate ? Carbon::parse($endDate)->endOfDay() : null;
         $currentMonthStart = now()->startOfMonth();
         $currentMonthEnd = now()->endOfMonth();
         $previousMonthStart = Carbon::now()->startOfMonth()->subMonth()->startOfMonth();
@@ -373,8 +375,12 @@ class ApiBookingController extends Controller
 
     public function getDriverBookings(Request $request, $userId): JsonResponse
     {
+
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
+
+        $startDate = $startDate ? Carbon::parse($startDate)->startOfDay() : null;
+        $endDate = $endDate ? Carbon::parse($endDate)->endOfDay() : null;
 
         $currentMonthStart = now()->startOfMonth();
         $currentMonthEnd = now()->endOfMonth();
