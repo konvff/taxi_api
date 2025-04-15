@@ -70,8 +70,8 @@ class ApiBookingController extends Controller
 
         $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
         $messageBody = $status == 2
-            ? "Driver {$driver->name} has started the ride."
-            : "Driver {$driver->name} has completed the booking.";
+            ? 'Driver has started the ride.'
+            : 'Driver has completed the booking.';
 
         try {
             $firebaseService->sendNotification(
