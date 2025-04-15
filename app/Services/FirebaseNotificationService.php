@@ -56,7 +56,7 @@ class FirebaseNotificationService
                         'title' => $title,
                         'body' => $body,
                     ],
-                    'data' => array_map('strval', $data),
+                    'data' => $data,
                 ],
             ];
 
