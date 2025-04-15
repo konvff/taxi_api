@@ -77,7 +77,6 @@ class ApiBookingController extends Controller
             $messageBody,
             [
                 'booking_id' => $driver->id ?? null,
-                'status' => $status,
             ]
         );
 
