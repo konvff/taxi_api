@@ -73,7 +73,7 @@ class ApiBookingController extends Controller
             ? 'Driver has started the ride.'
             : 'Driver has completed the booking.';
 
-        try {
+
             $firebaseService->sendNotification(
                 $admin->fcm_token,
                 $messageTitle,
@@ -82,9 +82,6 @@ class ApiBookingController extends Controller
                     'booking_id' => $driver->id ?? null,
                 ]
             );
-        } catch (\Throwable $e) {
-            \Log::error('Failed to send admin notification: '.$e->getMessage());
-        }
     }
 
     /**
