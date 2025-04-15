@@ -73,6 +73,8 @@ class AuthController extends Controller
         if ($request->filled('fcm_token')) {
             $user->update(['fcm_token' => $request->fcm_token]);
         }
+        $adminUser = User::where('role', 'admin')->first();
+        $adminId = $adminUser ? $adminUser->id : null;
 
         return response()->json([
             'message' => 'Login successful',
@@ -81,6 +83,7 @@ class AuthController extends Controller
             'category' => $user->category,
             'fcm_token' => $user->fcm_token,
             'token' => $token,
+            'admin_id' => $adminId,
         ]);
     }
 

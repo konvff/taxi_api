@@ -39,9 +39,10 @@ class ApiBookingController extends Controller
         $booking->status = $request->status;
         $booking->save();
         $driver = auth()->user();
-
-        if (in_array($request->status, [2, 3])) {
-            $this->sendAdminNotification($driver, $request->status);
+        if ($request->status == 2) {
+            $this->sendAdminNotification($driver, 2);
+        } elseif ($request->status == 3) {
+            $this->sendAdminNotification($driver, 3);
         }
 
         return response()->json([
@@ -58,7 +59,7 @@ class ApiBookingController extends Controller
     private function sendAdminNotification(?User $driver, $status)
     {
         // Fetch all admins
-        $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
+        $admin = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
 
         if ($admins->isEmpty()) {
             \Log::warning('No admin found with FCM token.');
@@ -75,17 +76,17 @@ class ApiBookingController extends Controller
             : "Driver {$driver->name} has completed the booking.";
 
         // Send notification to all admins
-        foreach ($admins as $admin) {
-            $firebaseService->sendNotification(
-                $admin->fcm_token,
-                $messageTitle,
-                $messageBody,
-                [
-                    'booking_id' => $driver->id ?? null,
-                    'status' => $status,
-                ]
-            );
-        }
+
+        $firebaseService->sendNotification(
+            $admin->fcm_token,
+            $messageTitle,
+            $messageBody,
+            [
+                'booking_id' => $driver->id ?? null,
+                'status' => $status,
+            ]
+        );
+
     }
 
     /**
