@@ -59,7 +59,7 @@ class ApiBookingController extends Controller
     private function sendAdminNotification(?User $driver, $status)
     {
         // Fetch all admins
-        $admin = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
+        $admin = User::where('role', 'admin')->whereNotNull('fcm_token')->first();
 
         if ($admin->isEmpty()) {
             \Log::warning('No admin found with FCM token.');
