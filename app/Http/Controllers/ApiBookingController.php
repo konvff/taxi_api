@@ -61,7 +61,7 @@ class ApiBookingController extends Controller
         // Fetch all admins
         $admin = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
 
-        if ($admins->isEmpty()) {
+        if ($admin->isEmpty()) {
             \Log::warning('No admin found with FCM token.');
 
             return;
