@@ -58,28 +58,33 @@ class ApiBookingController extends Controller
      */
     private function sendAdminNotification(?User $driver, $status)
     {
-        // Fetch all admins
         $admin = User::where('role', 'admin')->whereNotNull('fcm_token')->first();
+
+        if (! $admin) {
+            \Log::warning('No admin found or admin is missing FCM token.');
+
+            return;
+        }
 
         $firebaseService = new FirebaseNotificationService;
 
-        // Define the message based on status
         $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
         $messageBody = $status == 2
             ? "Driver {$driver->name} has started the ride."
             : "Driver {$driver->name} has completed the booking.";
 
-        // Send notification to all admins
-
-        $firebaseService->sendNotification(
-            $admin->fcm_token,
-            $messageTitle,
-            $messageBody,
-            [
-                'booking_id' => $driver->id ?? null,
-            ]
-        );
-
+        try {
+            $firebaseService->sendNotification(
+                $admin->fcm_token,
+                $messageTitle,
+                $messageBody,
+                [
+                    'booking_id' => $driver->id ?? null,
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send admin notification: '.$e->getMessage());
+        }
     }
 
     /**
