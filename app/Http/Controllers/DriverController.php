@@ -261,12 +261,30 @@ class DriverController extends Controller
 
     public function getDriverOnlineStats(Request $request, $id)
     {
-        $period = $request->query('period', 'week'); // 'week' or 'month'
+        $period = $request->query('period', 'week'); // 'day', 'week', or 'month'
 
         $query = \App\Models\DriverOnlineStatus::where('driver_id', $id)
             ->orderBy('changed_at');
 
-        $logs = $period === 'month' ? $query->thisMonth()->get() : $query->thisWeek()->get();
+        // Apply filter by period
+        if ($period === 'day') {
+            $query->whereBetween('changed_at', [
+                now()->startOfDay(),
+                now()->endOfDay(),
+            ]);
+        } elseif ($period === 'month') {
+            $query->whereBetween('changed_at', [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ]);
+        } else { // default to week
+            $query->whereBetween('changed_at', [
+                now()->startOfWeek(),
+                now()->endOfWeek(),
+            ]);
+        }
+
+        $logs = $query->get();
 
         $totalOnlineSeconds = 0;
 
@@ -282,7 +300,7 @@ class DriverController extends Controller
             }
         }
 
-        $totalHours = round($totalOnlineSeconds / 3600, 2); // convert to hours with 2 decimal places
+        $totalHours = round($totalOnlineSeconds / 3600, 2); // convert to hours
 
         return response()->json([
             'driver_id' => $id,
