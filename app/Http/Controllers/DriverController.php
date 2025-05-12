@@ -231,24 +231,65 @@ class DriverController extends Controller
 
     public function isActive(Request $request, $id)
     {
-        // Validate the request
+        // Validate request
         $request->validate([
-            'is_active' => 'required|integer',
+            'is_active' => 'required|integer|in:0,1',
         ]);
 
-        // Find the booking
+        // Find user
         $user = User::find($id);
         if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Update the status
+        // Update user's is_active
         $user->is_active = $request->is_active;
         $user->save();
 
+        // Save to online status log
+        \App\Models\DriverOnlineStatus::create([
+            'driver_id' => $user->id,
+            'is_active' => $request->is_active,
+            'changed_at' => now(),
+        ]);
+
         return response()->json([
-            'message' => 'User status active updated successfully',
+            'message' => 'User status updated successfully',
             'user' => $user,
-        ], 200);
+        ]);
+    }
+
+    public function getDriverOnlineStats(Request $request, $id)
+    {
+        $period = $request->query('period', 'week'); // 'week' or 'month'
+
+        $query = \App\Models\DriverOnlineStatus::where('driver_id', $id)
+            ->orderBy('changed_at');
+
+        $logs = $period === 'month' ? $query->thisMonth()->get() : $query->thisWeek()->get();
+
+        $totalOnlineSeconds = 0;
+
+        for ($i = 0; $i < $logs->count() - 1; $i++) {
+            $current = $logs[$i];
+            $next = $logs[$i + 1];
+
+            if ($current->is_active == 1 && $next->is_active == 0) {
+                $onlineTime = strtotime($next->changed_at) - strtotime($current->changed_at);
+                if ($onlineTime > 0) {
+                    $totalOnlineSeconds += $onlineTime;
+                }
+            }
+        }
+
+        $totalHours = round($totalOnlineSeconds / 3600, 2); // convert to hours with 2 decimal places
+
+        return response()->json([
+            'driver_id' => $id,
+            'period' => $period,
+            'log_count' => $logs->count(),
+            'total_hours_online' => $totalHours,
+            'logs' => $logs,
+        ]);
     }
 }
