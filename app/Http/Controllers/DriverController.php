@@ -208,6 +208,36 @@ class DriverController extends Controller
         }
     }
 
+    private function sendAdminNotificationStatus(User $user, $status)
+    {
+        // Fetch all admins
+        $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
+
+        if ($admins->isEmpty()) {
+            \Log::warning('No admin found with FCM token.');
+
+            return;
+        }
+
+        $firebaseService = new FirebaseNotificationService;
+
+        // Define the message based on status
+        $messageTitle = $status == 0 ? 'Driver Offline' : 'Driver Online';
+        $messageBody = $status == 1
+            ? "Driver {$user->name} is online"
+            : "Driver {$user->name} is offline";
+
+        // Send notification to all admins
+        foreach ($admins as $admin) {
+            $firebaseService->sendNotification(
+                $admin->fcm_token,
+                $messageTitle,
+                $messageBody,
+                ['user_id' => $user->id, 'status' => $status]
+            );
+        }
+    }
+
     public function updateRating(Request $request, $id)
     {
 
@@ -252,6 +282,10 @@ class DriverController extends Controller
             'is_active' => $request->is_active,
             'changed_at' => now(),
         ]);
+
+        if (in_array($request->status, [1, 0])) {
+            $this->sendAdminNotificationStatus($user, $request->status);
+        }
 
         return response()->json([
             'message' => 'User status updated successfully',
@@ -300,13 +334,17 @@ class DriverController extends Controller
             }
         }
 
-        $totalHours = round($totalOnlineSeconds / 3600, 2); // convert to hours
+        // Convert to minutes only
+        $totalMinutes = floor($totalOnlineSeconds / 60);
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
 
         return response()->json([
             'driver_id' => $id,
             'period' => $period,
             'log_count' => $logs->count(),
-            'total_hours_online' => $totalHours,
+            'total_minutes_online' => $totalMinutes,
+            'formatted_time_online' => sprintf('%02d:%02d', $hours, $minutes),
             'logs' => $logs,
         ]);
     }
