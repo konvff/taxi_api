@@ -283,8 +283,8 @@ class DriverController extends Controller
             'changed_at' => now(),
         ]);
 
-        if (in_array($request->status, [1, 0])) {
-            $this->sendAdminNotificationStatus($user, $request->status);
+        if (in_array($request->is_active, [1, 0])) {
+            $this->sendAdminNotificationStatus($user, $request->is_active);
         }
 
         return response()->json([
