@@ -70,18 +70,18 @@ class ApiBookingController extends Controller
 
         $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
         $messageBody = $status == 2
-            ? 'Driver has started the ride.'
-            : 'Driver has completed the booking.';
+        ? 'Driver has started the ride at '.now()->format('h:i A').'.'
+        : 'Driver has completed the booking at '.now()->format('h:i A').'.';
 
+        $firebaseService->sendNotification(
+            $admin->fcm_token,
+            $messageTitle,
+            $messageBody,
+            [
+                'booking_id' => $driver->id ?? null,
+            ]
+        );
 
-            $firebaseService->sendNotification(
-                $admin->fcm_token,
-                $messageTitle,
-                $messageBody,
-                [
-                    'booking_id' => $driver->id ?? null,
-                ]
-            );
     }
 
     /**

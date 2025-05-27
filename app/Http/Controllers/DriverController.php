@@ -194,8 +194,8 @@ class DriverController extends Controller
         // Define the message based on status
         $messageTitle = $status == 2 ? 'Ride Started' : 'Booking Completed';
         $messageBody = $status == 2
-            ? "Driver {$user->name} has started the ride."
-            : "Driver {$user->name} has completed the booking.";
+    ? "Driver {$user->name} has started the ride at ".now()->format('h:i A').'.'
+    : "Driver {$user->name} has completed the booking at ".now()->format('h:i A').'.';
 
         // Send notification to all admins
         foreach ($admins as $admin) {
@@ -224,8 +224,8 @@ class DriverController extends Controller
         // Define the message based on status
         $messageTitle = $status == 0 ? 'Driver Offline' : 'Driver Online';
         $messageBody = $status == 1
-            ? "Driver {$user->name} is online"
-            : "Driver {$user->name} is offline";
+    ? "Driver {$user->name} is online at ".now()->format('h:i A').'.'
+    : "Driver {$user->name} is offline at ".now()->format('h:i A').'.';
 
         // Send notification to all admins
         foreach ($admins as $admin) {
