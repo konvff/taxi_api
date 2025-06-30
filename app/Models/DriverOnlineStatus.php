@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DriverOnlineStatus extends Model
 {
-    protected $fillable = ['driver_id', 'is_active', 'changed_at'];
+    protected $fillable = ['driver_id', 'is_active', 'changed_at', 'car_details'];
 
     public function driver()
     {

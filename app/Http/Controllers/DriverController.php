@@ -211,7 +211,7 @@ class DriverController extends Controller
     private function sendAdminNotificationStatus(User $user, $status)
     {
         // Fetch all admins
-        $admins = User::where('role', 'admin')->whereNotNull('fcm_token')->get();
+        $admins = User::admin()->whereNotNull('fcm_token')->get();
 
         if ($admins->isEmpty()) {
             \Log::warning('No admin found with FCM token.');
@@ -276,12 +276,18 @@ class DriverController extends Controller
         $user->is_active = $request->is_active;
         $user->save();
 
-        // Save to online status log
-        \App\Models\DriverOnlineStatus::create([
+        // Prepare data for online status log
+        $onlineStatusData = [
             'driver_id' => $user->id,
             'is_active' => $request->is_active,
             'changed_at' => now(),
-        ]);
+        ];
+
+        if ($request->is_active == 0 && ! empty($user->car_name)) {
+            $onlineStatusData['car_details'] = $user->car_name;
+        }
+
+        \App\Models\DriverOnlineStatus::create($onlineStatusData);
 
         if (in_array($request->is_active, [1, 0])) {
             $this->sendAdminNotificationStatus($user, $request->is_active);
