@@ -352,14 +352,7 @@ class DriverController extends Controller
             'log_count' => $logs->count(),
             'total_minutes_online' => $totalMinutes,
             'formatted_time_online' => sprintf('%02d:%02d', $hours, $minutes),
-            'logs' => $logs->map(function ($log) {
-                return [
-                    'id' => $log->id,
-                    'driver_id' => $log->driver_id,
-                    'is_active' => $log->is_active,
-                    'changed_at' => \Carbon\Carbon::parse($log->changed_at)->toIso8601String(),
-                ];
-            }),
+            'logs' => $logs,
         ]);
     }
 }
