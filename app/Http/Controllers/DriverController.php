@@ -280,10 +280,11 @@ class DriverController extends Controller
         $onlineStatusData = [
             'driver_id' => $user->id,
             'is_active' => $request->is_active,
-            'changed_at' => now()->format('Y-m-d H:i:s'),
+            'changed_at' => now()->toISOString(),
+
         ];
 
-        if (!empty($user->car_name)) {
+        if (! empty($user->car_name)) {
             $onlineStatusData['car_details'] = $user->car_name;
         }
 
