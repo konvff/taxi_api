@@ -280,7 +280,7 @@ class DriverController extends Controller
         $onlineStatusData = [
             'driver_id' => $user->id,
             'is_active' => $request->is_active,
-            'changed_at' => now()->toISOString(),
+            'changed_at' => now(),
 
         ];
 
